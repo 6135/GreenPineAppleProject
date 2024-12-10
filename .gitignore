@@ -6,6 +6,7 @@
 # Secret files
 *.env
 .env
+appsettings.json
 
 # User-specific files
 *.rsuser
