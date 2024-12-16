@@ -1,25 +1,12 @@
 ﻿using Discord;
-using Discord.WebSocket;
+using GreenPineAppleProject.Bot;
 using Microsoft.Extensions.Configuration;
 
-namespace GreenPineAppleProject
+namespace GreenPineAppleProject.Logging
 {
-    public class BotEntry
+    public static class SentryHandler
     {
-        public static IConfigurationRoot config;
-        private static DiscordSocketClient _client;
-        public static async Task Main()
-        {
-            //load config
-            config = new ConfigurationBuilder()
-               .AddJsonFile("appsettings.Development.json", optional: false, reloadOnChange: true)
-               .Build();
-            await Sentry();
-
-            await BotInit();
-        }
-
-        private static async Task Sentry() => SentrySdk.Init(options =>
+        public static async Task Sentry(IConfigurationRoot config) => SentrySdk.Init(options =>
         {
             // A Sentry Data Source Name (DSN) is required.
             // See https://docs.sentry.io/product/sentry-basics/dsn-explainer/
@@ -55,7 +42,7 @@ namespace GreenPineAppleProject
             ));
         });
 
-        private static Task LogDiscordEvents(LogMessage log)
+        public static Task LogDiscordEvents(LogMessage log)
         {
             // Log all events to the console
             Console.WriteLine(log.ToString());
@@ -78,30 +65,6 @@ namespace GreenPineAppleProject
                 SentrySdk.CaptureMessage(log.ToString(), sentryLevel);
             }
             return Task.CompletedTask;
-        }
-
-
-
-        public static async Task BotInit()
-        {
-            _client = new DiscordSocketClient();
-
-            _client.Log += LogDiscordEvents;
-
-            //  You can assign your bot token to a string, and pass that in to connect.
-            //  This is, however, insecure, particularly if you plan to have your code hosted in a public repository.
-            var token = config["AppSettings:AppToken"];
-
-            // Some alternative options would be to keep your token in an Environment Variable or a standalone file.
-            // var token = Environment.GetEnvironmentVariable("NameOfYourEnvironmentVariable");
-            // var token = File.ReadAllText("token.txt");
-            // var token = JsonConvert.DeserializeObject<AConfigurationClass>(File.ReadAllText("config.json")).Token;
-
-            await _client.LoginAsync(TokenType.Bot, token);
-            await _client.StartAsync();
-
-            // Block this task until the program is closed.
-            await Task.Delay(-1);
         }
     }
 }
